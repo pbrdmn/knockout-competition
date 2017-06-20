@@ -2,22 +2,24 @@
 // Feel free to add other JS files in this directory as you see fit.
 
 document.addEventListener("DOMContentLoaded", (event) => {
-    document.getElementById("start").addEventListener("click", (event) => {
-        const teamsPerMatch = Number.parseInt(document.getElementById("teamsPerMatch").value, 10)
-        const numberOfTeams = Number.parseInt(document.getElementById("numberOfTeams").value, 10)
-        console.log('start', { teamsPerMatch, numberOfTeams })
+    App.init();
+});
 
+const App = {
+    teams: [],
+
+    getTeam: (teamId) => {
         var request = new XMLHttpRequest();
-        request.open('POST', '/tournament', true);
-        request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        request.open('GET', `/team?tournamentId=${App.tournamentId}&teamId=${teamId}`, true);
 
         request.onload = function() {
             if (request.status >= 200 && request.status < 400) {
                 // Success!
-                const data = JSON.parse(request.responseText);
+                const team = JSON.parse(request.responseText);
+                App.teams[team.teamId] = team;
             } else {
                 // We reached our target server, but it returned an error
-                console.error(JSON.parse(request.responseText));
+                console.error(JSON.parse(request.responseText).message);
             }
         };
 
@@ -26,8 +28,43 @@ document.addEventListener("DOMContentLoaded", (event) => {
             console.error('Connection Error')
         };
 
-        request.send(`teamsPerMatch=${teamsPerMatch}&numberOfTeams=${numberOfTeams}`);
-    })
+        request.send();
+    },
 
-    document.getElementById("winner").innerHTML = 'Ready'
-});
+    getTeams: () => {
+        for (let i = 0; i < App.numberOfTeams; i++) {
+            App.getTeam(i);
+        }
+    },
+
+    init: () => {
+        document.getElementById("start").addEventListener("click", (event) => {
+            App.teamsPerMatch = Number.parseInt(document.getElementById("teamsPerMatch").value, 10)
+            App.numberOfTeams = Number.parseInt(document.getElementById("numberOfTeams").value, 10)
+
+            var request = new XMLHttpRequest();
+            request.open('POST', '/tournament', true);
+            request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+            request.onload = function() {
+                if (request.status >= 200 && request.status < 400) {
+                    // Success!
+                    const tournament = JSON.parse(request.responseText);
+                    App.tournamentId = tournament.tournamentId;
+                    App.matchUps = tournament.matchUps;
+                    App.getTeams();
+                } else {
+                    // We reached our target server, but it returned an error
+                    console.error(JSON.parse(request.responseText).message);
+                }
+            };
+
+            request.onerror = function() {
+                // There was a connection error of some sort
+                console.error('Connection Error')
+            };
+
+            request.send(`teamsPerMatch=${App.teamsPerMatch}&numberOfTeams=${App.numberOfTeams}`);
+        })
+    }
+}
