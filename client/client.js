@@ -6,7 +6,50 @@ document.addEventListener("DOMContentLoaded", (event) => {
 });
 
 const App = {
-    teams: [],
+    getWinner: () => {},
+
+    getWinners: () => {
+        console.log("Loading Winners")
+    },
+
+    getMatch: (match) => {
+        var request = new XMLHttpRequest();
+        request.open('GET', `/match?tournamentId=${App.tournamentId}&round=${App.round}&match=${match.match}`, true);
+
+        request.onload = function() {
+            if (request.status >= 200 && request.status < 400) {
+                // Success!
+                const { score } = JSON.parse(request.responseText);
+                match.score = score;
+                App.loadedMatches++;
+
+                // console.log(`Loaded ${App.loadedMatches} of ${App.matchUps.length} matches`, match)
+                console.log(`Loading Matches:  ${App.loadedMatches} of ${App.matchUps.length}`)
+                if (App.loadedMatches === App.matchUps.length) {
+                    console.log("")
+                    App.getWinners()
+                }
+            } else {
+                // We reached our target server, but it returned an error
+                console.error(JSON.parse(request.responseText).message);
+            }
+        };
+
+        request.onerror = function() {
+            // There was a connection error of some sort
+            console.error('Connection Error')
+        };
+
+        request.send();
+    },
+
+    getMatches: () => {
+        console.log("Loading Matches")
+        App.loadedMatches = 0;
+        App.matchUps.map((match) => {
+            App.getMatch(match)
+        })
+    },
 
     getTeam: (teamId) => {
         var request = new XMLHttpRequest();
@@ -17,6 +60,14 @@ const App = {
                 // Success!
                 const team = JSON.parse(request.responseText);
                 App.teams[team.teamId] = team;
+                App.loadedTeams++;
+
+
+                console.log(`Loading Teams:  ${App.loadedTeams} of ${App.numberOfTeams}`)
+                if (App.loadedTeams === App.numberOfTeams) {
+                    console.log("")
+                    App.getMatches()
+                }
             } else {
                 // We reached our target server, but it returned an error
                 console.error(JSON.parse(request.responseText).message);
@@ -32,6 +83,9 @@ const App = {
     },
 
     getTeams: () => {
+        console.log("Loading Teams")
+        App.teams = [];
+        App.loadedTeams = 0;
         for (let i = 0; i < App.numberOfTeams; i++) {
             App.getTeam(i);
         }
@@ -41,6 +95,7 @@ const App = {
         document.getElementById("start").addEventListener("click", (event) => {
             App.teamsPerMatch = Number.parseInt(document.getElementById("teamsPerMatch").value, 10)
             App.numberOfTeams = Number.parseInt(document.getElementById("numberOfTeams").value, 10)
+            console.log("Creating Tournament")
 
             var request = new XMLHttpRequest();
             request.open('POST', '/tournament', true);
@@ -51,11 +106,15 @@ const App = {
                     // Success!
                     const tournament = JSON.parse(request.responseText);
                     App.tournamentId = tournament.tournamentId;
+                    App.round = 0;
                     App.matchUps = tournament.matchUps;
                     App.getTeams();
                 } else {
                     // We reached our target server, but it returned an error
-                    console.error(JSON.parse(request.responseText).message);
+                    const response = JSON.parse(request.responseText)
+                    if (response.error) {
+                        alert(response.message)
+                    }
                 }
             };
 
