@@ -1,3 +1,62 @@
 /*
     Edit me.
 */
+@import url('https://fonts.googleapis.com/css?family=Patua+One');
+
+#page {
+    margin: .5em auto;
+    padding: .5em;
+    max-width: 30em;
+    font-family: 'Patua One', sans-serif;
+    text-align: center;
+}
+
+#winner {
+    position: relative;
+    z-index: 2;
+    color: green;
+    margin-bottom: 0;
+}
+#winner:not(:empty):before {
+    content: "The Winner is "
+}
+
+#error {
+    color: orange;
+}
+
+#progress {
+    text-align: center;
+    word-wrap: break-word;
+}
+#progress span {
+    display: inline-block;
+    border: 1px solid green;
+    width: 10px;
+    height: 10px;
+    background: transparent;
+    margin: 0 1px;
+    transition: .3s;
+}
+#progress span.completed {
+    background: green;
+    transform: rotate(90deg);
+}
+
+#results {
+    font-size: .8em;
+    color: #555;
+    opacity: .5;
+}
+
+.results_round {
+    margin: .5em 0 0;
+    font-size: 1.2em;
+    color: #4a7d58
+}
+
+.results_match {
+    margin: .4em 0 0;
+    font-size: 1em;
+    color: #777;
+}

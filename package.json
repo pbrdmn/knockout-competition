@@ -2,6 +2,18 @@
   "author": "Canva",
   "name": "knockout-tournament",
   "version": "0.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dustykeyboard/challenge.git"
+  },
+  "contributors": [
+    {
+      "name": "Philip Boardman",
+      "email": "dustykeyboard@brd.mn",
+      "url": "https://brd.mn"
+    }
+  ],
+  "license": "UNLICENSED",
   "scripts": {
     "start": "node ./server/index.js",
     "test:integration": "mocha ./test/integration/**/*_test.js",
