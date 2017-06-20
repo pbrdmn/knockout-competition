@@ -5,6 +5,22 @@ document.addEventListener("DOMContentLoaded", (event) => {
     App.init();
 });
 
+const { TOURNAMENT, ROUND, MATCH, TEAM }
+
+const Cache = {
+    data: {},
+
+    get: (store, key) => {
+        try {
+            return this.data[store][key]
+        } catch (error) {
+            return undefined
+        }
+    }
+
+    set: (store, key, value) => this.data[store][key] = value
+}
+
 const App = {
     getWinner: () => {},
 
@@ -51,44 +67,29 @@ const App = {
         })
     },
 
-    getTeam: (teamId) => {
-        var request = new XMLHttpRequest();
-        request.open('GET', `/team?tournamentId=${App.tournamentId}&teamId=${teamId}`, true);
-
-        request.onload = function() {
-            if (request.status >= 200 && request.status < 400) {
-                // Success!
-                const team = JSON.parse(request.responseText);
-                App.teams[team.teamId] = team;
-                App.loadedTeams++;
-
-
-                console.log(`Loading Teams:  ${App.loadedTeams} of ${App.numberOfTeams}`)
-                if (App.loadedTeams === App.numberOfTeams) {
-                    console.log("")
-                    App.getMatches()
-                }
+    getTeam: teamId => {
+        return new Promise((resolve, reject) => {
+            if (Cache.get(TEAM, teamId)) {
+                resolve(Cache.get(TEAM, teamId))
             } else {
-                // We reached our target server, but it returned an error
-                console.error(JSON.parse(request.responseText).message);
+                var request = new XMLHttpRequest();
+                request.open('GET', `/team?tournamentId=${App.tournamentId}&teamId=${teamId}`, true);
+
+                request.onload = function() {
+                    if (request.status >= 200 && request.status < 400) {
+                        resolve(Cache.set(TEAM, teamId, JSON.parse(request.responseText)))
+                    } else {
+                        reject(JSON.parse(request.responseText).message);
+                    }
+                };
+
+                request.onerror = function() {
+                    reject('Connection Error')
+                };
+
+                request.send();
             }
-        };
-
-        request.onerror = function() {
-            // There was a connection error of some sort
-            console.error('Connection Error')
-        };
-
-        request.send();
-    },
-
-    getTeams: () => {
-        console.log("Loading Teams")
-        App.teams = [];
-        App.loadedTeams = 0;
-        for (let i = 0; i < App.numberOfTeams; i++) {
-            App.getTeam(i);
-        }
+        })
     },
 
     init: () => {
@@ -107,7 +108,8 @@ const App = {
                     const tournament = JSON.parse(request.responseText);
                     App.tournamentId = tournament.tournamentId;
                     App.round = 0;
-                    App.matchUps = tournament.matchUps;
+                    Cache.rounds = []
+                    Cache.rounds[App.round] = tournament.matchUps;
                     App.getTeams();
                 } else {
                     // We reached our target server, but it returned an error
