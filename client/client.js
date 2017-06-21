@@ -115,20 +115,31 @@ const App = {
                         const losers = teams.filter((team => team.teamId !== winner.teamId))
                         console.log(`Round ${round} match ${match}: ${winner.name} defeated ${losers.map(team => team.name).join(', ')}`)
 
-                        resolve(winner.teamId)
+                        resolve(winner)
                     })
                 }))
             )
         }))
         .then(winners => {
+            const nextRound = round + 1
             console.log({ winners })
+            if (winners.length > 1) {
+                App.nextRoundMatchUps({ nextRound, winners })
+                .then(App.runRound({ round: nextRound }))
+            } else {
+                App.displayWinner(winners.shift())
+            }
         })
     },
 
-    nextRoundMatchUps: ({ round, winners }) => {
+    nextRoundMatchUps: ({ nextRound, winners }) => new Promise((resolve, reject) => {
         const teamsPerMatch = Cache.get(APP, 'teamsPerMatch')
-
-    },
+        const matches = teamsPerMatch / winners.length
+        const matchUps = array(matches).map((a, b, c) => {
+            console.log()
+        })
+        console.log('App.nextRoundMatchUps', { matchUps})
+    }),
 
     getMatch: ({ round, match }) => new Promise((resolve, reject) => {
         const tournamentId = Cache.get(APP, TOURNAMENT)
@@ -153,4 +164,8 @@ const App = {
         HTTP.get('/winner', { tournamentId, teamScores, matchScore })
         .then(response => resolve(response.score))
     }),
+
+    displayWinner: (winner) => {
+        document.getElementById('winner').innerHTML = winner.name
+    }
 }
