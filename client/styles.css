@@ -27,6 +27,16 @@
     text-align: center;
     word-wrap: break-word;
 }
+#progress span {
+    display: inline-block;
+    border: 1px solid green;
+    width: 10px;
+    height: 10px;
+    background: transparent;
+}
+#progress span.completed {
+    background: green;
+}
 
 #results {
     font-size: .8em;

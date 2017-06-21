@@ -14,15 +14,10 @@ const ui = {
     initProgress: ({ totalMatches }) => {
         ui.totalMatches = totalMatches
         ui.completedMatches = 0
-        ui.renderProgress()
+        ui.el("progress").innerHTML = Array(ui.totalMatches).fill('<span></span>').join('')
     },
 
-    updateProgress: () => {
-        ui.completedMatches++
-        ui.renderProgress()
-    },
-
-    renderProgress: () => ui.el("progress").innerHTML = Array(ui.completedMatches).fill('☒').concat( Array(ui.totalMatches - ui.completedMatches).fill('☐') ).join(''),
+    updateProgress: () => ui.el("progress").querySelector(`span:nth-child(n+${++ui.completedMatches})`).className='completed',
 
     displayError: (error) => ui.el("error").innerHTML = error,
 
