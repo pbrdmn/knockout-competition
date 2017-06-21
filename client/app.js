@@ -44,8 +44,11 @@ const App = {
                     const teamScores = teams.map(team => team.score)
                     // Find the winning score
                     App.getWinner({ teamScores, matchScore }).then(winningScore => {
-                        // The winner is the first team with the matching score
-                        const winner = teams.find((team => team.score === winningScore))
+                        // The winner is the team with the matching score and lowest teamId
+                        const winner = teams
+                                        .filter((team => team.score === winningScore))
+                                        .sort((a, b) => a.teamId - b.teamId)
+                                        .shift()
                         const losers = teams.filter((team => team.teamId !== winner.teamId))
                         losers.map(team => App.teams.clear(team.teamId))
 
@@ -61,7 +64,7 @@ const App = {
         .then(winners => {
             if (winners.length == 1) {
                 // Display the winner
-                App.displayWinner(`${winners.shift().name} is the Winner.`)
+                App.displayWinner(winners.shift().name)
             } else {
                 // Setup next rount of matches
                 const nextRound = round + 1
