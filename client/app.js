@@ -12,6 +12,9 @@ const App = {
         App.teamsPerMatch = teamsPerMatch
         App.numberOfTeams = numberOfTeams
 
+        // Clear teams cache
+        App.teams.t = {}
+
         // Request the tournament details from the server
         HTTP.post('/tournament', { teamsPerMatch, numberOfTeams })
         .then(tournament => {
