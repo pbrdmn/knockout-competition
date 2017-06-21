@@ -1,6 +1,10 @@
 /*
     Edit me.
 */
+@import url('https://fonts.googleapis.com/css?family=Patua+One');
+* {
+    font-family: 'Patua One', sans-serif;
+}
 
 #page {
     margin: .5em auto;
