@@ -5,127 +5,153 @@ document.addEventListener("DOMContentLoaded", (event) => {
     App.init();
 });
 
-const { TOURNAMENT, ROUND, MATCH, TEAM }
+const [ APP, TOURNAMENT, ROUND, MATCH, TEAM ] = [ 'APP', 'TOURNAMENT', 'ROUND', 'MATCH', 'TEAM' ]
 
 const Cache = {
     data: {},
 
-    get: (store, key) => {
-        try {
-            return this.data[store][key]
-        } catch (error) {
-            return undefined
-        }
-    }
+    get: (store = 'APP', key) => (Cache.data && Cache.data[store]) ? Cache.data[store][key] : undefined,
 
-    set: (store, key, value) => this.data[store][key] = value
+    set: (store = 'APP', key, value) => {
+        if (!Cache.data) Cache.data = {}
+        if (!Cache.data[store]) Cache.data[store] = {}
+        return Cache.data[store][key] = value
+    }
 }
 
 const App = {
-    getWinner: () => {},
+    init: () => {
+        document.getElementById("start").addEventListener("click", (event) => {
+            const teamsPerMatch = Number.parseInt(document.getElementById("teamsPerMatch").value, 10)
+            const numberOfTeams = Number.parseInt(document.getElementById("numberOfTeams").value, 10)
 
-    getWinners: () => {
-        console.log("Loading Winners")
+            App.run({ teamsPerMatch, numberOfTeams })
+            .then(() => App.runRound())
+            .catch(error => alert(error.message))
+        })
     },
 
-    getMatch: (match) => {
+    run: ({ teamsPerMatch, numberOfTeams }) => {
+        console.log("Creating Tournament")
+
+        App.teamsPerMatch = teamsPerMatch;
+        App.numberOfTeams = numberOfTeams;
+
+        return App.getTournament({ teamsPerMatch, numberOfTeams })
+    },
+    
+    getTournament: ({ teamsPerMatch, numberOfTeams }) => new Promise((resolve, reject) => {
+        console.log('App.getTournament', { teamsPerMatch, numberOfTeams })
         var request = new XMLHttpRequest();
-        request.open('GET', `/match?tournamentId=${App.tournamentId}&round=${App.round}&match=${match.match}`, true);
+        request.open('POST', '/tournament', true);
+        request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 
         request.onload = function() {
             if (request.status >= 200 && request.status < 400) {
-                // Success!
-                const { score } = JSON.parse(request.responseText);
-                match.score = score;
-                App.loadedMatches++;
-
-                // console.log(`Loaded ${App.loadedMatches} of ${App.matchUps.length} matches`, match)
-                console.log(`Loading Matches:  ${App.loadedMatches} of ${App.matchUps.length}`)
-                if (App.loadedMatches === App.matchUps.length) {
-                    console.log("")
-                    App.getWinners()
-                }
+                const { tournamentId, matchUps } = JSON.parse(request.responseText);
+                const roundId = 0
+                Cache.set(APP, ROUND, roundId)
+                Cache.set(APP, TOURNAMENT, tournamentId)
+                Cache.set(ROUND, roundId, matchUps)
+                resolve()
             } else {
-                // We reached our target server, but it returned an error
-                console.error(JSON.parse(request.responseText).message);
+                const response = JSON.parse(request.responseText)
+                if (response.error) {
+                    reject(response.message)
+                }
             }
         };
 
         request.onerror = function() {
-            // There was a connection error of some sort
-            console.error('Connection Error')
+            reject({ message:'Connection Error', error: true })
+        };
+
+        request.send(`teamsPerMatch=${teamsPerMatch}&numberOfTeams=${numberOfTeams}`);
+    }),
+
+    runRound: () => {
+        const roundId = Cache.get(APP, ROUND)
+        Cache.get(ROUND, roundId).map(matchUp => {
+            App.getMatch(roundId, matchUp.match).then(matchScore => {
+                console.log(`Round ${roundId} match ${matchUp.match}`, { matchScore })
+                const matches = matchUp.teamIds.map(teamId => App.getTeam(teamId))
+                Promise.all(matches).then(teams => {
+                    console.log(teams)
+                    const scores = teams.map(team => team.score)
+                })
+            })
+        })
+    },
+
+    getMatch: (round, match) => new Promise((resolve, reject) => {
+        const tournamentId = Cache.get(APP, TOURNAMENT)
+        var request = new XMLHttpRequest();
+        request.open('GET', `/match?tournamentId=${tournamentId}&round=${round}&match=${match}`, true);
+
+        request.onload = function() {
+            if (request.status >= 200 && request.status < 400) {
+                const { score } = JSON.parse(request.responseText);
+                resolve(score);
+            } else {
+                reject(JSON.parse(request.responseText));
+            }
+        };
+
+        request.onerror = function() {
+            reject({ message:'Connection Error', error: true });
         };
 
         request.send();
-    },
+    }),
 
-    getMatches: () => {
-        console.log("Loading Matches")
-        App.loadedMatches = 0;
-        App.matchUps.map((match) => {
-            App.getMatch(match)
-        })
-    },
-
-    getTeam: teamId => {
-        return new Promise((resolve, reject) => {
-            if (Cache.get(TEAM, teamId)) {
-                resolve(Cache.get(TEAM, teamId))
-            } else {
-                var request = new XMLHttpRequest();
-                request.open('GET', `/team?tournamentId=${App.tournamentId}&teamId=${teamId}`, true);
-
-                request.onload = function() {
-                    if (request.status >= 200 && request.status < 400) {
-                        resolve(Cache.set(TEAM, teamId, JSON.parse(request.responseText)))
-                    } else {
-                        reject(JSON.parse(request.responseText).message);
-                    }
-                };
-
-                request.onerror = function() {
-                    reject('Connection Error')
-                };
-
-                request.send();
-            }
-        })
-    },
-
-    init: () => {
-        document.getElementById("start").addEventListener("click", (event) => {
-            App.teamsPerMatch = Number.parseInt(document.getElementById("teamsPerMatch").value, 10)
-            App.numberOfTeams = Number.parseInt(document.getElementById("numberOfTeams").value, 10)
-            console.log("Creating Tournament")
-
+    getTeam: teamId => new Promise((resolve, reject) => {
+        const team = Cache.get(TEAM, teamId)
+        if (typeof team !== 'undefined') {
+            console.log('App.getTeam cache resolve', team)
+            resolve(team)
+        } else {
+            const tournament = Cache.get(APP, TOURNAMENT)
             var request = new XMLHttpRequest();
-            request.open('POST', '/tournament', true);
-            request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            request.open('GET', `/team?tournamentId=${tournament}&teamId=${teamId}`, true);
 
             request.onload = function() {
                 if (request.status >= 200 && request.status < 400) {
-                    // Success!
-                    const tournament = JSON.parse(request.responseText);
-                    App.tournamentId = tournament.tournamentId;
-                    App.round = 0;
-                    Cache.rounds = []
-                    Cache.rounds[App.round] = tournament.matchUps;
-                    App.getTeams();
+                    const team = JSON.parse(request.responseText)
+                    console.log('App.getTeam request resolve', team)
+                    Cache.set(TEAM, teamId, team)
+                    resolve(team)
                 } else {
-                    // We reached our target server, but it returned an error
-                    const response = JSON.parse(request.responseText)
-                    if (response.error) {
-                        alert(response.message)
-                    }
+                    reject(JSON.parse(request.responseText));
                 }
             };
 
             request.onerror = function() {
-                // There was a connection error of some sort
-                console.error('Connection Error')
+                reject({ message:'Connection Error', error: true })
             };
 
-            request.send(`teamsPerMatch=${App.teamsPerMatch}&numberOfTeams=${App.numberOfTeams}`);
-        })
-    }
+            request.send();
+        }
+    }),
+
+    getWinner: (teamScores, matchScore) => new Promise((resolve, reject) => {
+        const tournamentId = Cache.get(APP, TOURNAMENT)
+        var request = new XMLHttpRequest();
+        // http://localhost:8765/winner?tournamentId=41&teamScores[]=1&teamScores[]=2&matchScore=3
+        request.open('GET', `/winner?tournamentId=${tournamentId}&teamScores=${teamScores.join(',')}&matchScore=${matchScore}`, true);
+
+        request.onload = function() {
+            if (request.status >= 200 && request.status < 400) {
+                const { score } = JSON.parse(request.responseText);
+                resolve(score);
+            } else {
+                reject(JSON.parse(request.responseText));
+            }
+        };
+
+        request.onerror = function() {
+            reject({ message:'Connection Error', error: true });
+        };
+
+        request.send();
+    }),
 }
