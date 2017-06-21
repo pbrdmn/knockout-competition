@@ -1,9 +1,10 @@
 const App = {
-    init: ({ displayWinner, displayRound, displayMatch, displayProgress }) => {
+    init: ({ displayWinner, displayRound, displayMatch, displayProgress, displayError }) => {
         App.displayWinner = displayWinner;
         App.displayRound = displayRound;
         App.displayMatch = displayMatch;
         App.displayProgress = displayProgress;
+        App.displayError = displayError
     },
 
     getTournament: ({ teamsPerMatch, numberOfTeams }) => new Promise((resolve, reject) => {
@@ -18,6 +19,7 @@ const App = {
             Cache.set(ROUND, round, matchUps)
             resolve(round)
         })
+        .catch(error => App.displayError ? App.displayError(error) : alert(error))
     }),
 
     runRound: ({ round }) => {

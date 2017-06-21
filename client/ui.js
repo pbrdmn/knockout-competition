@@ -33,10 +33,13 @@ const ui = {
         ui.el("progress").innerHTML = Array(completed).fill('☒').concat( Array(pending).fill('☐') ).join('')
     },
 
+    displayError: (error) => {
+        ui.el("error").innerHTML = error
+        ui.showShade()
+    },
+
     clear: () => {
-        ui.el("winner").innerHTML = ""
-        ui.el("progress").innerHTML = ""
-        ui.el("shade").className = ""
+        ["winner", "error", "progress"].map(id => ui.el(id).innerHTML = "")
         if (ui.el("results")) ui.el("results").innerHTML = ""
         ui.hideShade()
     },

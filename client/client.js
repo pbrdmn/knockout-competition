@@ -18,4 +18,4 @@ document.addEventListener("DOMContentLoaded", (event) => {
     })
 
     App.init(ui)
-});
+})

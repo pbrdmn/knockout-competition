@@ -12,17 +12,24 @@
     text-align: center;
 }
 
-#winner {
+#winner,
+#error {
     position: relative;
     z-index: 2;
     padding: .5em 0;
     font-size: 2em;
     text-align: center;
+    color: green;
+}
+
+#error {
+    color: orange;
 }
 
 #progress {
     text-align: center;
     padding-top: 1em;
+    word-wrap: break-word;
 }
 
 #shade {
