@@ -9,7 +9,6 @@ const ui = {
     displayWinner: (winner) => {
         ui.el("winner").innerHTML = winner
         ui.el("progress").innerHTML = ""
-        ui.showShade()
     },
 
     displayRound: (round) => {
@@ -35,20 +34,10 @@ const ui = {
 
     displayError: (error) => {
         ui.el("error").innerHTML = error
-        ui.showShade()
     },
 
     clear: () => {
         ["winner", "error", "progress"].map(id => ui.el(id).innerHTML = "")
         if (ui.el("results")) ui.el("results").innerHTML = ""
-        ui.hideShade()
-    },
-
-    showShade: () => {
-        ui.el("shade").className = "visible"
-    },
-
-    hideShade: () => {
-        ui.el("shade").className = ""
     }
 }

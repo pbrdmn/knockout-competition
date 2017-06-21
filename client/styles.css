@@ -32,23 +32,6 @@
     word-wrap: break-word;
 }
 
-#shade {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    opacity: 0;
-    visibility: hidden;
-    background: white;
-    transition: .3s
-}
-
-#shade.visible {
-    opacity: .8;
-    visibility: visible;
-}
-
 #results {
     font-size: .8em;
     color: #555;

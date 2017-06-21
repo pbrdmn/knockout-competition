@@ -2,10 +2,6 @@
 // Feel free to add other JS files in this directory as you see fit.
 
 document.addEventListener("DOMContentLoaded", (event) => {
-    document.getElementById("shade").addEventListener("click", (event) => {
-        ui.hideShade()
-    })
-
     document.getElementById("start").addEventListener("click", () => {
         ui.clear()
 
