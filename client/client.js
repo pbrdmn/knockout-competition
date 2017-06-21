@@ -101,7 +101,7 @@ const App = {
     }),
 
     runRound: ({ round }) => {
-        console.log(`Running Round ${round}`)
+        console.log(`# Round ${round}`)
         const winners = []
         Promise.all(Cache.get(ROUND, round).map(matchUp => {
             const { match } = matchUp
@@ -113,7 +113,7 @@ const App = {
                     App.getWinner({ teamScores, matchScore }).then(winningScore => {
                         const winner = teams.find((team => team.score === winningScore))
                         const losers = teams.filter((team => team.teamId !== winner.teamId))
-                        console.log(`Round ${round} match ${match}: ${winner.name} defeated ${losers.map(team => team.name).join(', ')}`)
+                        console.log(`- Match ${match}: ${winner.name} defeated ${losers.map(team => team.name).join(', ')}`, { losers })
 
                         resolve(winner)
                     })
@@ -122,24 +122,34 @@ const App = {
         }))
         .then(winners => {
             const nextRound = round + 1
-            console.log({ winners })
             if (winners.length > 1) {
                 App.nextRoundMatchUps({ nextRound, winners })
-                .then(App.runRound({ round: nextRound }))
+                App.runRound({ round: nextRound })
             } else {
-                App.displayWinner(winners.shift())
+                const team = winners.shift()
+                console.log(`Winning team is ${team.name}`)
+                App.winnerDisplay(`Winning team is ${team.name}`)
             }
         })
     },
 
-    nextRoundMatchUps: ({ nextRound, winners }) => new Promise((resolve, reject) => {
+    nextRoundMatchUps: ({ nextRound, winners }) => {
         const teamsPerMatch = Cache.get(APP, 'teamsPerMatch')
-        const matches = teamsPerMatch / winners.length
-        const matchUps = array(matches).map((a, b, c) => {
-            console.log()
-        })
-        console.log('App.nextRoundMatchUps', { matchUps})
-    }),
+        const matches = winners.length / teamsPerMatch
+        let matchUps = []
+        for (let i = 0; i < matches; i++) {
+            let matchUp = {
+                match: matchUps.length,
+                teamIds: []
+            }
+            for (let j = 0; j < teamsPerMatch; j++) {
+                matchUp.teamIds.push(winners.shift().teamId)
+            }
+            matchUps.push(matchUp)
+        }
+        console.log({ nextRound, matchUps })
+        Cache.set(ROUND, nextRound, matchUps)
+    },
 
     getMatch: ({ round, match }) => new Promise((resolve, reject) => {
         const tournamentId = Cache.get(APP, TOURNAMENT)
@@ -165,7 +175,7 @@ const App = {
         .then(response => resolve(response.score))
     }),
 
-    displayWinner: (winner) => {
-        document.getElementById('winner').innerHTML = winner.name
+    winnerDisplay: (winner) => {
+        document.getElementById('winner').innerHTML = winner
     }
 }
