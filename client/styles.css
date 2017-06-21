@@ -20,10 +20,20 @@
     font-size: 2em;
     text-align: center;
     color: green;
+    opacity: 0;
+    visibility: hidden;
+    display: none;
+}
+#error {
+    font-size: 1.5em;
+    color: orange;
 }
 
-#error {
-    color: orange;
+#winner.visible,
+#error.visible {
+    opacity: 1;
+    visibility: visible;
+    display: block;
 }
 
 #progress {

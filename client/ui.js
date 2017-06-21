@@ -8,23 +8,26 @@ const ui = {
 
     displayWinner: (winner) => {
         ui.el("winner").innerHTML = winner
+        ui.el("winner").className = "visible"
         ui.el("progress").innerHTML = ""
     },
 
     displayRound: (round) => {
-        if (!ui.el("results")) return
+        const message = `Round ${(round + 1)}`
+        if (!ui.el("results")) return console.log(message)
         const h2 = document.createElement("h2")
         h2.setAttribute("id", `round_${round}`)
         h2.className = "results_round"
-        h2.textContent = `Round ${(round + 1)}`
+        h2.textContent = message
         ui.el("results").appendChild(h2)
     },
 
     displayMatch: ({ winner, losers }) => {
-        if (!ui.el("results")) return
+        const message = `${winner.name} <i>defeated</i> ${losers.map(team => team.name).join(", ")}`
+        if (!ui.el("results")) return console.log(message)
         const p = document.createElement("p")
         p.className = "results_match"
-        p.innerHTML = `${winner.name} <i>defeated</i> ${losers.map(team => team.name).join(", ")}`
+        p.innerHTML = message
         ui.el("results").appendChild(p)
     },
 
@@ -34,10 +37,11 @@ const ui = {
 
     displayError: (error) => {
         ui.el("error").innerHTML = error
+        ui.el("error").className = "visible"
     },
 
     clear: () => {
-        ["winner", "error", "progress"].map(id => ui.el(id).innerHTML = "")
+        ["winner", "error", "progress"].map(id => {ui.el(id).innerHTML = ""; ui.el(id).className = ""})
         if (ui.el("results")) ui.el("results").innerHTML = ""
     }
 }
