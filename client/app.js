@@ -1,16 +1,4 @@
 const App = {
-    init: () => {
-        const teamsPerMatch = Number.parseInt(document.getElementById("teamsPerMatch").value, 10)
-        const numberOfTeams = Number.parseInt(document.getElementById("numberOfTeams").value, 10)
-
-        Cache.set(APP, 'teamsPerMatch', teamsPerMatch);
-        Cache.set(APP, 'numberOfTeams', numberOfTeams);
-
-        App.getTournament({ teamsPerMatch, numberOfTeams })
-        .then(round => App.runRound({ round }))
-        .catch(error => alert(error.message))
-    },
-    
     getTournament: ({ teamsPerMatch, numberOfTeams }) => new Promise((resolve, reject) => {
         HTTP.post('/tournament', { teamsPerMatch, numberOfTeams })
         .then(tournament => {
@@ -23,7 +11,7 @@ const App = {
     }),
 
     runRound: ({ round }) => {
-        console.log(`# Round ${round}`)
+        App.displayRound(round)
         const winners = []
         Promise.all(Cache.get(ROUND, round).map(matchUp =>
             App.getMatch({ round, match: matchUp.match })
@@ -35,7 +23,7 @@ const App = {
                     App.getWinner({ teamScores, matchScore }).then(winningScore => {
                         const winner = teams.find((team => team.score === winningScore))
                         const losers = teams.filter((team => team.teamId !== winner.teamId))
-                        console.log(`- Match ${matchUp.match}: ${winner.name} defeated ${losers.map(team => team.name).join(', ')}`)
+                        App.displayMatch({ winner, losers })
 
                         resolve(winner)
                     })
@@ -50,7 +38,7 @@ const App = {
             } else {
                 const team = winners.shift()
                 console.log(`${team.name} is the Winner.`)
-                App.winnerDisplay(`${team.name} is the Winner.`)
+                App.displayWinner(`${team.name} is the Winner.`)
             }
         })
     },
@@ -96,7 +84,23 @@ const App = {
         .then(response => resolve(response.score))
     }),
 
-    winnerDisplay: (winner) => {
+    displayWinner: (winner) => {
         document.getElementById('winner').innerHTML = winner
+        document.getElementById('shade').className = "visible"
+    },
+
+    displayRound: (round) => {
+        const h2 = document.createElement('h2')
+        h2.setAttribute('id', `round_${round}`)
+        h2.className = 'results_round'
+        h2.textContent = `Round ${(round + 1)}`
+        document.getElementById('results').appendChild(h2)
+    },
+
+    displayMatch: ({ winner, losers }) => {
+        const p = document.createElement('p')
+        p.className = 'results_match'
+        p.innerHTML = `${winner.name} <i>defeated</i> ${losers.map(team => team.name).join(', ')}`
+        document.getElementById('results').appendChild(p)
     }
 }

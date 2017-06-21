@@ -1,16 +1,27 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link rel="stylesheet" href="./client/styles.css">
-    <script type="text/javascript" src="./client/client.js"></script>
+    <meta name="viewport" content="width=device-width">
     <title>Knockout Tournament</title>
+    <link rel="stylesheet" href="./client/styles.css">
+    <script type="text/javascript" src="./client/constants.js"></script>
+    <script type="text/javascript" src="./client/http.js"></script>
+    <script type="text/javascript" src="./client/cache.js"></script>
+    <script type="text/javascript" src="./client/app.js"></script>
+    <script type="text/javascript" src="./client/client.js"></script>
   </head>
   <body>
     <!-- Edit me. -->
     <!-- For tests to pass, the IDs of the elements below MUST NOT change. -->
-    <input id="teamsPerMatch" placeholder="Teams per match" type="number" value="2" />
-    <input id="numberOfTeams" placeholder="Number of teams" type="number" value="64" />
-    <button id="start">Start</button>
-    <span id="winner"></span>
+    <div id="page">
+      <div class="form">
+        <h1>Knockout Tournament</h1>
+        <input id="teamsPerMatch" placeholder="Teams per match" type="number" value="2" />
+        <input id="numberOfTeams" placeholder="Number of teams" type="number" value="64" />
+        <button id="start">Start</button>
+      </div>
+      <div id="winner"></div>
+      <div id="results"></div>
+      <div id="shade"></div>
   </body>
 </html>

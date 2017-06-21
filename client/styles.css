@@ -1,3 +1,55 @@
 /*
     Edit me.
 */
+
+#page {
+    margin: .5em auto;
+    padding: .5em;
+    max-width: 30em;
+}
+
+.form {
+    text-align: center;
+}
+
+#winner {
+    position: relative;
+    z-index: 2;
+    padding: .5em 0;
+    font-size: 2em;
+    text-align: center;
+}
+
+#shade {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0;
+    visibility: hidden;
+    background: white;
+    transition: .3s
+}
+
+#shade.visible {
+    opacity: .8;
+    visibility: visible;
+}
+
+#results {
+    font-size: .8em;
+    color: #555;
+}
+
+.results_round {
+    margin: .5em 0 0;
+    font-size: 1.2em;
+    color: #4a7d58
+}
+
+.results_match {
+    margin: .4em 0 0;
+    font-size: 1em;
+    color: #777;
+}
