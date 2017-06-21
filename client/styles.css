@@ -2,39 +2,33 @@
     Edit me.
 */
 @import url('https://fonts.googleapis.com/css?family=Patua+One');
-* {
-    font-family: 'Patua One', sans-serif;
-}
 
 #page {
     margin: .5em auto;
     padding: .5em;
     max-width: 30em;
+    font-family: 'Patua One', sans-serif;
 }
 
 .form {
     text-align: center;
 }
 
-#winner,
-#error {
+#winner {
     position: relative;
     z-index: 2;
     padding: .5em 0;
-    font-size: 2em;
-    text-align: center;
+    font-size: 1.5em;
     color: green;
     opacity: 0;
     visibility: hidden;
     display: none;
 }
-#error {
-    font-size: 1.5em;
+#winner.error {
     color: orange;
 }
 
-#winner.visible,
-#error.visible {
+#winner.visible {
     opacity: 1;
     visibility: visible;
     display: block;
