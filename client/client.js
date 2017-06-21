@@ -84,7 +84,7 @@ const App = {
             Cache.set(APP, 'numberOfTeams', numberOfTeams);
 
             App.getTournament({ teamsPerMatch, numberOfTeams })
-            .then(round => App.runRound(round))
+            .then(round => App.runRound({ round }))
             .catch(error => alert(error.message))
         })
     },
@@ -100,25 +100,34 @@ const App = {
         })
     }),
 
-    runRound: (round) => {
+    runRound: ({ round }) => {
         console.log(`Running Round ${round}`)
         const winners = []
-        Cache.get(ROUND, round).map(matchUp => {
+        Promise.all(Cache.get(ROUND, round).map(matchUp => {
             const { match } = matchUp
-            App.getMatch({ round, match }).then(matchScore => {
-                const matches = matchUp.teamIds.map(teamId => App.getTeam({ teamId }))
-                Promise.all(matches).then(teams => {
+            return App.getMatch({ round, match })
+            .then(matchScore =>
+                Promise.all(matchUp.teamIds.map(teamId => App.getTeam({ teamId })))
+                .then(teams => new Promise((resolve, reject) => {
                     const teamScores = teams.map(team => team.score)
                     App.getWinner({ teamScores, matchScore }).then(winningScore => {
                         const winner = teams.find((team => team.score === winningScore))
                         const losers = teams.filter((team => team.teamId !== winner.teamId))
                         console.log(`Round ${round} match ${match}: ${winner.name} defeated ${losers.map(team => team.name).join(', ')}`)
 
-                        winners.push(winner)
+                        resolve(winner.teamId)
                     })
-                })
-            })
+                }))
+            )
+        }))
+        .then(winners => {
+            console.log({ winners })
         })
+    },
+
+    nextRoundMatchUps: ({ round, winners }) => {
+        const teamsPerMatch = Cache.get(APP, 'teamsPerMatch')
+
     },
 
     getMatch: ({ round, match }) => new Promise((resolve, reject) => {
