@@ -17,8 +17,6 @@
 #winner {
     position: relative;
     z-index: 2;
-    padding: .5em 0;
-    font-size: 1.5em;
     color: green;
 }
 #error {
@@ -27,7 +25,6 @@
 
 #progress {
     text-align: center;
-    padding-top: 1em;
     word-wrap: break-word;
 }
 

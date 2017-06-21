@@ -1,9 +1,10 @@
 const App = {
-    init: ({ displayWinner, displayRound, displayMatch, displayProgress, displayError }) => {
+    init: ({ displayWinner, displayRound, displayMatch, initProgress, updateProgress, displayError }) => {
         App.displayWinner = displayWinner
         App.displayRound = displayRound
         App.displayMatch = displayMatch
-        App.displayProgress = displayProgress
+        App.initProgress = initProgress
+        App.updateProgress = updateProgress
         App.displayError = displayError
     },
 
@@ -11,6 +12,15 @@ const App = {
         // Store the input parameters
         App.teamsPerMatch = teamsPerMatch
         App.numberOfTeams = numberOfTeams
+
+        // Calculat number of matches to draw progress boxes
+        let remainingTeams = numberOfTeams
+        let totalMatches = 0
+        while (remainingTeams > 1) {
+            totalMatches += remainingTeams / teamsPerMatch
+            remainingTeams /= teamsPerMatch
+        }
+        ui.initProgress({ totalMatches })
 
         // Clear teams cache
         App.teams.t = {}
@@ -32,8 +42,6 @@ const App = {
         App.displayRound(round)
 
         // For each match
-        let [ completed, pending ] = [ 0, matchUps.length ]
-        App.displayProgress({ round, completed, pending})
         Promise.all(matchUps.map(matchUp =>
             App.getMatch({ round, match: matchUp.match })
             .then(matchScore =>
@@ -54,7 +62,7 @@ const App = {
 
                         App.displayMatch({ winner, losers })
 
-                        App.displayProgress({ round, completed: ++completed, pending: --pending })
+                        App.updateProgress()
                         resolve(winner)
                     })
                 }))
