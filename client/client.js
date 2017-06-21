@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
         // Retrieve the tournament and begin running the program
         App.getTournament({ teamsPerMatch, numberOfTeams })
-        .then(round => App.runRound({ round }))
+        .then(matchUps => App.runRound({ round: 0, matchUps }))
         // Display errors gracefully
         .catch(error => alert(error.message))
     })

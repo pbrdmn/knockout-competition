@@ -9,8 +9,8 @@ const App = {
 
     getTournament: ({ teamsPerMatch, numberOfTeams }) => new Promise((resolve, reject) => {
         // Store the input parameters
-        Cache.set(APP, 'teamsPerMatch', teamsPerMatch)
-        Cache.set(APP, 'numberOfTeams', numberOfTeams)
+        App.teamsPerMatch = teamsPerMatch
+        App.numberOfTeams = numberOfTeams
 
         // Request the tournament details from the server
         HTTP.post('/tournament', { teamsPerMatch, numberOfTeams })
@@ -18,22 +18,20 @@ const App = {
             const { tournamentId, matchUps } = tournament
             const round = 0
             // Store the tournament details and resolve for the first round
-            Cache.set(APP, TOURNAMENT, tournamentId)
-            Cache.set(ROUND, round, matchUps)
-            resolve(round)
+            App.tournamentId = tournamentId
+            resolve(matchUps)
         })
         // Handle error via UI or alert if unset
         .catch(error => App.displayError ? App.displayError(error) : alert(error))
     }),
 
-    runRound: ({ round }) => {
+    runRound: ({ round, matchUps }) => {
         App.displayRound(round)
 
         // For each match
-        const matches = Cache.get(ROUND, round)
-        let [ completed, pending ] = [ 0, matches.length ]
+        let [ completed, pending ] = [ 0, matchUps.length ]
         App.displayProgress({ round, completed, pending})
-        Promise.all(matches.map(matchUp =>
+        Promise.all(matchUps.map(matchUp =>
             App.getMatch({ round, match: matchUp.match })
             .then(matchScore =>
                 // Look up the each team by teamId for the match
@@ -46,6 +44,7 @@ const App = {
                         // The winner is the first team with the matching score
                         const winner = teams.find((team => team.score === winningScore))
                         const losers = teams.filter((team => team.teamId !== winner.teamId))
+                        losers.map(team => Cache.clear(team.teamId))
 
                         App.displayMatch({ winner, losers })
 
@@ -63,16 +62,16 @@ const App = {
             } else {
                 // Setup next rount of matches
                 const nextRound = round + 1
-                App.nextRoundMatchUps({ nextRound, winners })
+                const matchUps = App.nextRoundMatchUps({ nextRound, winners })
                 // Run the next round (recursion)
-                App.runRound({ round: nextRound })
+                App.runRound({ round: nextRound, matchUps })
             }
         })
     },
 
     nextRoundMatchUps: ({ nextRound, winners }) => {
         // Calculate the number of matches required for the next round
-        const teamsPerMatch = Cache.get(APP, 'teamsPerMatch')
+        const { teamsPerMatch } = App
         const matches = winners.length / teamsPerMatch
         let matchUps = []
         // For each match, set the match object
@@ -87,26 +86,26 @@ const App = {
             }
             matchUps.push(matchUp)
         }
-        // Store the matchUps
-        Cache.set(ROUND, nextRound, matchUps)
+        // Return the matchUps
+        return matchUps
     },
 
     getMatch: ({ round, match }) => new Promise((resolve, reject) => {
         // Retrieve the match score from the server
-        const tournamentId = Cache.get(APP, TOURNAMENT)
+        const { tournamentId } = App
         HTTP.get('/match', { tournamentId, round, match })
         .then(response => resolve(response.score))
     }),
 
     getTeam: ({ teamId }) => new Promise((resolve, reject) => {
         // Check if the team is in cache
-        if (team = Cache.get(TEAM, teamId)) resolve(team)
+        if (team = Cache.get(teamId)) resolve(team)
         else {
             // Fetch the team from the server and cache before returning
-            const tournamentId = Cache.get(APP, TOURNAMENT)
+            const { tournamentId } = App
             HTTP.get('/team', { tournamentId, teamId })
             .then(team => {
-                Cache.set(TEAM, teamId, team)
+                Cache.set(teamId, team)
                 resolve(team)
             })
         }
@@ -114,7 +113,7 @@ const App = {
 
     getWinner: ({ teamScores, matchScore }) => new Promise((resolve, reject) => {
         // Retrieve the winning score for the match from the server
-        const tournamentId = Cache.get(APP, TOURNAMENT)
+        const { tournamentId } = App
         HTTP.get('/winner', { tournamentId, teamScores, matchScore })
         .then(response => resolve(response.score))
     })

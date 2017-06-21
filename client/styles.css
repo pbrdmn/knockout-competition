@@ -20,18 +20,9 @@
     padding: .5em 0;
     font-size: 1.5em;
     color: green;
-    opacity: 0;
-    visibility: hidden;
-    display: none;
 }
-#winner.error {
+#error {
     color: orange;
-}
-
-#winner.visible {
-    opacity: 1;
-    visibility: visible;
-    display: block;
 }
 
 #progress {

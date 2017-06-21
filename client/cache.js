@@ -1,15 +1,17 @@
 // Simple two-dimensional structure
 
 const Cache = {
-    data: {},
+    teams: {},
 
     // retrieve stored values by store, key
-    get: (store = 'APP', key) => (Cache.data && Cache.data[store]) ? Cache.data[store][key] : undefined,
+    get: (key) => (Cache.teams[key]) ? Cache.teams[key] : undefined,
 
     // setup objects and store value
-    set: (store = 'APP', key, value) => {
-        if (!Cache.data) Cache.data = {}
-        if (!Cache.data[store]) Cache.data[store] = {}
-        return Cache.data[store][key] = value
-    }
+    set: (key, value) => {
+        if (!Cache.teams) Cache.teams = {}
+        return Cache.teams[key] = value
+    },
+
+    // remove objects from store
+    clear: (key) => (Cache.teams[key]) ? delete Cache.teams[key] : null
 }
