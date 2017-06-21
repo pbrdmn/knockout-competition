@@ -44,7 +44,7 @@ const App = {
                         // The winner is the first team with the matching score
                         const winner = teams.find((team => team.score === winningScore))
                         const losers = teams.filter((team => team.teamId !== winner.teamId))
-                        losers.map(team => Cache.clear(team.teamId))
+                        losers.map(team => App.teams.clear(team.teamId))
 
                         App.displayMatch({ winner, losers })
 
@@ -99,17 +99,33 @@ const App = {
 
     getTeam: ({ teamId }) => new Promise((resolve, reject) => {
         // Check if the team is in cache
-        if (team = Cache.get(teamId)) resolve(team)
+        if (team = App.teams.get(teamId)) resolve(team)
         else {
             // Fetch the team from the server and cache before returning
             const { tournamentId } = App
             HTTP.get('/team', { tournamentId, teamId })
             .then(team => {
-                Cache.set(teamId, team)
+                App.teams.set(teamId, team)
                 resolve(team)
             })
         }
     }),
+
+    teams: {
+        t: {},
+
+        // retrieve stored values by store, key
+        get: function (key) { return (this.t[key]) ? this.t[key] : undefined },
+
+        // setup objects and store value
+        set: function (key, value) {
+            if (!this.t) this.t = {}
+            return this.t[key] = value
+        },
+
+        // remove objects from store
+        clear: function (key) { (this.t[key]) ? delete this.t[key] : null }
+    },
 
     getWinner: ({ teamScores, matchScore }) => new Promise((resolve, reject) => {
         // Retrieve the winning score for the match from the server
