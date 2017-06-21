@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     })
 
     document.getElementById("start").addEventListener("click", () => {
-        ui.clearResults()
+        ui.clear()
 
         const teamsPerMatch = Number.parseInt(document.getElementById("teamsPerMatch").value, 10)
         const numberOfTeams = Number.parseInt(document.getElementById("numberOfTeams").value, 10)
