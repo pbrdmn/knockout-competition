@@ -1,8 +1,9 @@
 const App = {
-    init: ({ displayWinner, displayRound, displayMatch }) => {
+    init: ({ displayWinner, displayRound, displayMatch, displayProgress }) => {
         App.displayWinner = displayWinner;
         App.displayRound = displayRound;
         App.displayMatch = displayMatch;
+        App.displayProgress = displayProgress;
     },
 
     getTournament: ({ teamsPerMatch, numberOfTeams }) => new Promise((resolve, reject) => {
@@ -22,32 +23,43 @@ const App = {
     runRound: ({ round }) => {
         App.displayRound(round)
         const winners = []
-        Promise.all(Cache.get(ROUND, round).map(matchUp =>
+
+        // For each match
+        const matches = Cache.get(ROUND, round)
+        let completed = 0
+        let pending = matches.length
+        App.displayProgress({ round, completed, pending})
+        Promise.all(matches.map(matchUp =>
             App.getMatch({ round, match: matchUp.match })
-            .then(matchScore => {
-                const getTeams = matchUp.teamIds.map(teamId => App.getTeam({ teamId }))
-                return Promise.all(getTeams)
+            .then(matchScore =>
+                // Look up the each team by teamId for the match
+                Promise.all(matchUp.teamIds.map(teamId => App.getTeam({ teamId })))
+                // When all teams for the match have been retrieved
                 .then(teams => new Promise((resolve, reject) => {
                     const teamScores = teams.map(team => team.score)
+                    // Find the winning score
                     App.getWinner({ teamScores, matchScore }).then(winningScore => {
+                        // The winner is the first team with the matching score
                         const winner = teams.find((team => team.score === winningScore))
                         const losers = teams.filter((team => team.teamId !== winner.teamId))
                         App.displayMatch({ winner, losers })
 
-                        resolve(winner)
+                        App.displayProgress({ round, completed: ++completed, pending: --pending })
+                        resolve(winner);
                     })
                 }))
-            })
+            )
         ))
+        // When all matches in the round have completed
         .then(winners => {
-            const nextRound = round + 1
-            if (winners.length > 1) {
-                App.nextRoundMatchUps({ nextRound, winners })
-                App.runRound({ round: nextRound })
-            } else {
+            if (winners.length == 1) {
                 const team = winners.shift()
                 console.log(`${team.name} is the Winner.`)
                 App.displayWinner(`${team.name} is the Winner.`)
+            } else {
+                const nextRound = round + 1
+                App.nextRoundMatchUps({ nextRound, winners })
+                App.runRound({ round: nextRound })
             }
         })
     },

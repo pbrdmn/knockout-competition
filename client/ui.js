@@ -1,6 +1,7 @@
 const ui = {
     displayWinner: (winner) => {
         document.getElementById("winner").innerHTML = winner
+        document.getElementById("progress").innerHTML = ""
         ui.showShade()
     },
 
@@ -19,8 +20,13 @@ const ui = {
         document.getElementById("results").appendChild(p)
     },
 
+    displayProgress: ({ completed, pending }) => {
+        document.getElementById("progress").innerHTML = Array(completed).fill('☒').concat( Array(pending).fill('☐') ).join('')
+    },
+
     clearResults: () => {
         document.getElementById("winner").innerHTML = ""
+        document.getElementById("progress").innerHTML = ""
         document.getElementById("results").innerHTML = ""
         document.getElementById("shade").className = ""
         ui.hideShade()

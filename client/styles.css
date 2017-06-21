@@ -20,6 +20,11 @@
     text-align: center;
 }
 
+#progress {
+    text-align: center;
+    padding-top: 1em;
+}
+
 #shade {
     position: fixed;
     top: 0;
@@ -40,6 +45,7 @@
 #results {
     font-size: .8em;
     color: #555;
+    opacity: .5;
 }
 
 .results_round {
