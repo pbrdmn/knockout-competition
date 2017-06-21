@@ -1,68 +1,71 @@
-const App = {
-    init: ({ displayWinner, displayRound, displayMatch, initProgress, updateProgress, displayError }) => {
-        App.displayWinner = displayWinner
-        App.displayRound = displayRound
-        App.displayMatch = displayMatch
-        App.initProgress = initProgress
-        App.updateProgress = updateProgress
-        App.displayError = displayError
-    },
+class App {
+    constructor({ displayWinner, displayRound, displayMatch, initProgress, updateProgress, displayError }) {
+        this.displayWinner = displayWinner
+        this.displayRound = displayRound
+        this.displayMatch = displayMatch
+        this.initProgress = initProgress
+        this.updateProgress = updateProgress
+        this.displayError = displayError
+    }
 
-    getTournament: ({ teamsPerMatch, numberOfTeams }) => new Promise((resolve, reject) => {
-        // Store the input parameters
-        App.teamsPerMatch = teamsPerMatch
-        App.numberOfTeams = numberOfTeams
+    getTournament({ teamsPerMatch, numberOfTeams }) {
+        return new Promise((resolve, reject) => {
+            // Store the input parameters
+            this.teamsPerMatch = teamsPerMatch
+            this.numberOfTeams = numberOfTeams
 
-        // Calculat number of matches to draw progress boxes
-        let remainingTeams = numberOfTeams
-        let totalMatches = 0
-        while (remainingTeams > 1) {
-            totalMatches += remainingTeams / teamsPerMatch
-            remainingTeams /= teamsPerMatch
-        }
-        ui.initProgress({ totalMatches })
+            // Calculat number of matches to draw progress boxes
+            let remainingTeams = numberOfTeams
+            let totalMatches = 0
+            while (remainingTeams > 1) {
+                totalMatches += remainingTeams / teamsPerMatch
+                remainingTeams /= teamsPerMatch
+            }
+            ui.initProgress({ totalMatches })
 
-        // Clear teams cache
-        App.teams.t = {}
+            // Clear teams cache
+            this.teams = {}
 
-        // Request the tournament details from the server
-        HTTP.post('/tournament', { teamsPerMatch, numberOfTeams })
-        .then(tournament => {
-            const { tournamentId, matchUps } = tournament
-            const round = 0
-            // Store the tournament details and resolve for the first round
-            App.tournamentId = tournamentId
-            resolve(matchUps)
+            // Request the tournament details from the server
+            HTTP.post('/tournament', { teamsPerMatch, numberOfTeams })
+            .then(tournament => {
+                const { tournamentId, matchUps } = tournament
+                const round = 0
+                // Store the tournament details and resolve for the first round
+                this.tournamentId = tournamentId
+                resolve(matchUps)
+            })
+            // Handle error via UI or alert if unset
+            .catch(error => this.displayError ? this.displayError(error) : alert(error))
         })
-        // Handle error via UI or alert if unset
-        .catch(error => App.displayError ? App.displayError(error) : alert(error))
-    }),
+    }
 
-    runRound: ({ round, matchUps }) => {
-        App.displayRound(round)
+    runRound({ round, matchUps }) {
+        this.displayRound(round)
 
         // For each match
         Promise.all(matchUps.map(matchUp =>
-            App.getMatch({ round, match: matchUp.match })
+            this.getMatch({ round, match: matchUp.match })
             .then(matchScore =>
                 // Look up the each team by teamId for the match
-                Promise.all(matchUp.teamIds.map(teamId => App.getTeam({ teamId })))
+                Promise.all(matchUp.teamIds.map(teamId => this.getTeam({ teamId })))
                 // When all teams for the match have been retrieved
                 .then(teams => new Promise((resolve, reject) => {
+                    console.log({ teams })
                     const teamScores = teams.map(team => team.score)
                     // Find the winning score
-                    App.getWinner({ teamScores, matchScore }).then(winningScore => {
+                    this.getWinner({ teamScores, matchScore }).then(winningScore => {
                         // The winner is the team with the matching score and lowest teamId
                         const winner = teams
                                         .filter((team => team.score === winningScore))
                                         .sort((a, b) => a.teamId - b.teamId)
                                         .shift()
                         const losers = teams.filter((team => team.teamId !== winner.teamId))
-                        losers.map(team => App.teams.clear(team.teamId))
+                        losers.map(team => delete this.teams[team.teamId])
 
-                        App.displayMatch({ winner, losers })
+                        this.displayMatch({ winner, losers })
 
-                        App.updateProgress()
+                        this.updateProgress()
                         resolve(winner)
                     })
                 }))
@@ -72,21 +75,20 @@ const App = {
         .then(winners => {
             if (winners.length == 1) {
                 // Display the winner
-                App.displayWinner(winners.shift().name)
+                this.displayWinner(winners.shift().name)
             } else {
                 // Setup next rount of matches
                 const nextRound = round + 1
-                const matchUps = App.nextRoundMatchUps({ nextRound, winners })
+                const matchUps = this.nextRoundMatchUps({ nextRound, winners })
                 // Run the next round (recursion)
-                App.runRound({ round: nextRound, matchUps })
+                this.runRound({ round: nextRound, matchUps })
             }
         })
-    },
+    }
 
-    nextRoundMatchUps: ({ nextRound, winners }) => {
+    nextRoundMatchUps({ nextRound, winners }) {
         // Calculate the number of matches required for the next round
-        const { teamsPerMatch } = App
-        const matches = winners.length / teamsPerMatch
+        const matches = winners.length / this.teamsPerMatch
         let matchUps = []
         // For each match, set the match object
         for (let i = 0; i < matches; i++) {
@@ -95,56 +97,41 @@ const App = {
                 teamIds: []
             }
             // Push ${teamsPerMatch} teams from the previous winners into each match
-            for (let j = 0; j < teamsPerMatch; j++) {
+            for (let j = 0; j < this.teamsPerMatch; j++) {
                 matchUp.teamIds.push(winners.shift().teamId)
             }
             matchUps.push(matchUp)
         }
         // Return the matchUps
         return matchUps
-    },
+    }
 
-    getMatch: ({ round, match }) => new Promise((resolve, reject) => {
-        // Retrieve the match score from the server
-        const { tournamentId } = App
-        HTTP.get('/match', { tournamentId, round, match })
-        .then(response => resolve(response.score))
-    }),
+    getMatch({ round, match }) {
+        return new Promise((resolve, reject) => {
+            // Retrieve the match score from the server
+            HTTP.get('/match', { tournamentId: this.tournamentId, round, match })
+            .then(response => resolve(response.score))
+        })
+    }
 
-    getTeam: ({ teamId }) => new Promise((resolve, reject) => {
-        // Check if the team is in cache
-        if (team = App.teams.get(teamId)) resolve(team)
-        else {
-            // Fetch the team from the server and cache before returning
-            const { tournamentId } = App
-            HTTP.get('/team', { tournamentId, teamId })
-            .then(team => {
-                App.teams.set(teamId, team)
-                resolve(team)
-            })
-        }
-    }),
+    getTeam({ teamId }) {
+        return new Promise((resolve, reject) => {
+            // Check if the team is in cache
+            if (Object.keys(this.teams).includes(teamId)) resolve(this.teams[teamId])
+            else {
+                console.log(// Fetch the team from the server and cache before returning
+                )
+                HTTP.get('/team', { tournamentId: this.tournamentId, teamId })
+                .then(team => resolve(this.teams[teamId] = team))
+            }
+        })
+    }
 
-    teams: {
-        t: {},
-
-        // retrieve stored values by store, key
-        get: function (key) { return (this.t[key]) ? this.t[key] : undefined },
-
-        // setup objects and store value
-        set: function (key, value) {
-            if (!this.t) this.t = {}
-            return this.t[key] = value
-        },
-
-        // remove objects from store
-        clear: function (key) { (this.t[key]) ? delete this.t[key] : null }
-    },
-
-    getWinner: ({ teamScores, matchScore }) => new Promise((resolve, reject) => {
-        // Retrieve the winning score for the match from the server
-        const { tournamentId } = App
-        HTTP.get('/winner', { tournamentId, teamScores, matchScore })
-        .then(response => resolve(response.score))
-    })
+    getWinner({ teamScores, matchScore }) {
+        return new Promise((resolve, reject) => {
+            // Retrieve the winning score for the match from the server
+            HTTP.get('/winner', { tournamentId: this.tournamentId, teamScores, matchScore })
+            .then(response => resolve(response.score))
+        })
+    }
 }

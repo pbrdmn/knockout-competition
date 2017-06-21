@@ -1,6 +1,9 @@
 // Edit me.
 // Feel free to add other JS files in this directory as you see fit.
 
+// Setup display handling functions to decouple the UI from the business login
+const app = new App(ui)
+
 // When the webpage has loaded
 document.addEventListener("DOMContentLoaded", (event) => {
     // Handle clicking on the "Start" button
@@ -13,12 +16,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
         const numberOfTeams = Number.parseInt(document.getElementById("numberOfTeams").value, 10)
 
         // Retrieve the tournament and begin running the program
-        App.getTournament({ teamsPerMatch, numberOfTeams })
-        .then(matchUps => App.runRound({ round: 0, matchUps }))
+        app.getTournament({ teamsPerMatch, numberOfTeams })
+        .then(matchUps => app.runRound({ round: 0, matchUps }))
         // Display errors gracefully
         .catch(error => alert(error.message))
     })
-
-    // Setup display handling functions to decouple the UI from the business login
-    App.init(ui)
 })
