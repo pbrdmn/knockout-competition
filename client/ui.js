@@ -1,25 +1,38 @@
-const ui = {
-    E: {},
+class UI {
+    constructor(params) {
+        const defaults = { progressId: "progress", errorId: "error", winnerId: "winner", startId: "start" }
+        const options = Object.assign({}, defaults, params)
+        this.progress = document.getElementById(options.progressId)
+        this.winner = document.getElementById(options.winnerId)
+        this.error = document.getElementById(options.errorId)
+        this.start = document.getElementById(options.startId)
+    }
 
-    el: (id) => (ui.E[id]) ? ui.E[id] : ui.E[id] = document.getElementById(id),
+    initProgress(matches) {
+        this.start.setAttribute('disabled', 'disabled')
+        app.ui.start.innerText = "Running"
+        this.clear()
+        this.done = 0
+        // Create boxes for each match to be completed
+        this.progress.innerHTML = Array(matches).fill('<span></span>').join('')
+    }
 
-    displayWinner: (winner) => {
-        ui.el("winner").innerHTML = winner
-    },
+    updateProgress() {
+        // A match has been completed, mark a box
+        this.progress.querySelector(`span:nth-child(n+${++this.done})`).className='completed'
+    }
 
-    displayRound: (round) => console.log(`Round ${(round + 1)}`),
+    displayWinner(winner) {
+        this.start.removeAttribute('disabled')
+        app.ui.start.innerText = "Start"
+        this.winner.innerHTML = winner
+    }
 
-    displayMatch: ({ winner, losers }) => console.log(`${winner.name} defeated ${losers.map(team => team.name).join(", ")}`),
+    displayError(error) {
+        this.error.innerHTML = error
+    }
 
-    initProgress: ({ totalMatches }) => {
-        ui.totalMatches = totalMatches
-        ui.completedMatches = 0
-        ui.el("progress").innerHTML = Array(ui.totalMatches).fill('<span></span>').join('')
-    },
-
-    updateProgress: () => ui.el("progress").querySelector(`span:nth-child(n+${++ui.completedMatches})`).className='completed',
-
-    displayError: (error) => ui.el("error").innerHTML = error,
-
-    clear: () => ["winner", "error", "progress"].map(id => ui.el(id).innerHTML = "")
+    clear() {
+        [this.winner, this.error, this.progress].map(el => el.innerHTML = "")
+    }
 }
