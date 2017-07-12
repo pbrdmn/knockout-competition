@@ -22,9 +22,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
         const numberOfTeams = Number.parseInt(document.getElementById("numberOfTeams").value, 10)
 
         // Retrieve the tournament and begin running the program
-        app.getTournament({ teamsPerMatch, numberOfTeams })
+        app.createTournament({ teamsPerMatch, numberOfTeams })
         .then(matchUps => app.runRound({ round: 0, matchUps }))
         // Display errors gracefully
-        .catch(error => alert(error.message))
+        // .catch(error => alert(error.message))
     })
 })
