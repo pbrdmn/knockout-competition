@@ -136,4 +136,14 @@ class App {
                 .then(response => resolve(response.score))
         })
     }
+  
+    togglePause() {
+      if (this.http.networkActive) {
+        this.http.pause()
+        this.ui.displayPause(true)
+      } else {
+        this.http.resume()
+        this.ui.displayPause(false)
+      }
+    }
 }

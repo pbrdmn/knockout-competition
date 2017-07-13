@@ -1,11 +1,12 @@
 class UI {
     constructor(params) {
-        const defaults = { progressId: "progress", errorId: "error", winnerId: "winner", startId: "start" }
+        const defaults = { progressId: "progress", errorId: "error", winnerId: "winner", startId: "start", pauseId: "pause" }
         const options = Object.assign({}, defaults, params)
         this.progress = document.getElementById(options.progressId)
         this.winner = document.getElementById(options.winnerId)
         this.error = document.getElementById(options.errorId)
         this.start = document.getElementById(options.startId)
+        this.pause = document.getElementById(options.pauseId)
     }
 
     initProgress(matches) {
@@ -30,6 +31,10 @@ class UI {
 
     displayError(error) {
         this.error.innerHTML = error
+    }
+
+    displayPause(paused) {
+        this.pause.innerHTML = paused ? "Resume" : "Pause"
     }
 
     clear() {

@@ -9,6 +9,9 @@ class HTTP {
         // Maximum number of simultaneous connections
         this.connectionsLimit = options.connectionsLimit
 
+        // Flag to process requests
+        this.networkActive = true
+
         this.useQueue = (this.connectionsLimit || this.rateLimit)
 
         if (this.useQueue) {
@@ -26,6 +29,7 @@ class HTTP {
     }
 
     maintainConnectionsLimit() {
+        if (!this.networkActive) return
         while(this.queue.length && (this.connections < this.connectionsLimit)) {
             const { request, params } = this.queue.shift()
             request.send(params)
@@ -46,6 +50,14 @@ class HTTP {
             this.queue = this.queue.sort((a,b) => a.p - b.p)
         } else
             request.send(params)
+    }
+    
+    pause() {
+        this.networkActive = false
+    }
+
+    resume() {
+        this.networkActive = true
     }
 
     // HTTP POST request

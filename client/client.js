@@ -31,4 +31,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
             app.ui.displayError('Invalid inputs')
         }
     })
+
+    // Handle clicking on "Pause" button
+    document.getElementById("pause").addEventListener("click", () => {
+        app.togglePause()
+    })
 })
