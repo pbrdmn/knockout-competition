@@ -13,14 +13,15 @@ class UI {
         this.start.setAttribute('disabled', 'disabled')
         app.ui.start.innerText = "Running"
         this.clear()
-        this.done = 0
         // Create boxes for each match to be completed
         this.progress.innerHTML = Array(matches).fill('<span></span>').join('')
     }
 
-    updateProgress() {
+    updateProgress({ id, completed, text }) {
         // A match has been completed, mark a box
-        this.progress.querySelector(`span:nth-child(n+${++this.done})`).className='completed'
+        const box = this.progress.querySelector(`span:nth-child(n+${id})`)
+        if (completed) box.className = 'completed'
+        box.setAttribute('title', text)
     }
 
     displayWinner(winner) {

@@ -4,11 +4,11 @@ class App {
         this.http = http
         this.debug = debug ? true : false
     }
-  
+
     validateInput({ teamsPerMatch, numberOfTeams }) {
-      if (isNaN(teamsPerMatch) || teamsPerMatch < 2) return false
-      if (isNaN(numberOfTeams) || numberOfTeams < 2) return false
-      return true
+        if (isNaN(teamsPerMatch) || teamsPerMatch < 2) return false
+        if (isNaN(numberOfTeams) || numberOfTeams < 2) return false
+        return true
     }
 
     getTournament({ teamsPerMatch, numberOfTeams }) {
@@ -19,6 +19,9 @@ class App {
 
             // Clear teams cache
             this.teams = {}
+
+            // Track matchups
+            this.matches = 0
 
             // Request the tournament details from the server
             this.http.post(0, '/tournament', { teamsPerMatch, numberOfTeams })
@@ -46,6 +49,10 @@ class App {
     runRound({ round, matchUps }) {
         if (this.debug) console.log(`Round ${(round + 1)}`)
 
+        // starting offset for match ids in UI
+        const prevMatches = app.matches
+        app.matches += matchUps.length
+
         // Array of promises which resolve the winner of each match 
         Promise.all(matchUps.map(matchUp =>
             this.getMatch({ round, match: matchUp.match })
@@ -54,6 +61,13 @@ class App {
                     Promise.all(matchUp.teamIds.map(teamId => this.getTeam({ match: matchUp.match, teamId })))
                         // When all teams for the match have been retrieved
                         .then(teams => new Promise((resolve, reject) => {
+                            // Update UI with team names
+                            this.ui.updateProgress({
+                                id: prevMatches + matchUp.match,
+                                completed: false,
+                                text: teams.map(team => team.name).join(', ')
+                            })
+
                             const teamScores = teams.map(team => team.score)
                             // Find the winning score
                             this.getWinner({ teamScores, matchScore }).then(winningScore => {
@@ -68,8 +82,12 @@ class App {
                                 losers.map(team => delete this.teams[team.teamId])
 
                                 // Update UI and return winner
+                                this.ui.updateProgress({
+                                    id: prevMatches + matchUp.match,
+                                    completed: true,
+                                    text: `${winner.name} won`
+                                })
                                 if (this.debug) console.log(`${winner.name} defeated ${losers.map(team => team.name).join(", ")}`)
-                                this.ui.updateProgress()
                                 resolve(winner)
                             })
                         }))
@@ -136,14 +154,14 @@ class App {
                 .then(response => resolve(response.score))
         })
     }
-  
+
     togglePause() {
-      if (this.http.networkActive) {
-        this.http.pause()
-        this.ui.displayPause(true)
-      } else {
-        this.http.resume()
-        this.ui.displayPause(false)
-      }
+        if (this.http.networkActive) {
+            this.http.pause()
+            this.ui.displayPause(true)
+        } else {
+            this.http.resume()
+            this.ui.displayPause(false)
+        }
     }
 }
