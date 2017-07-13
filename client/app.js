@@ -4,6 +4,12 @@ class App {
         this.http = http
         this.debug = debug ? true : false
     }
+  
+    validateInput({ teamsPerMatch, numberOfTeams }) {
+      if (isNaN(teamsPerMatch) || teamsPerMatch < 2) return false
+      if (isNaN(numberOfTeams) || numberOfTeams < 2) return false
+      return true
+    }
 
     getTournament({ teamsPerMatch, numberOfTeams }) {
         return new Promise((resolve, reject) => {

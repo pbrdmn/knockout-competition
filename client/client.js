@@ -21,10 +21,14 @@ document.addEventListener("DOMContentLoaded", (event) => {
         const teamsPerMatch = Number.parseInt(document.getElementById("teamsPerMatch").value, 10)
         const numberOfTeams = Number.parseInt(document.getElementById("numberOfTeams").value, 10)
 
-        // Retrieve the tournament and begin running the program
-        app.getTournament({ teamsPerMatch, numberOfTeams })
-        .then(matchUps => app.runRound({ round: 0, matchUps }))
-        // Display errors gracefully
-        .catch(error => alert(error.message))
+        if (app.validateInput({ teamsPerMatch, numberOfTeams })) {
+            // Retrieve the tournament and begin running the program
+            app.getTournament({ teamsPerMatch, numberOfTeams })
+            .then(matchUps => app.runRound({ round: 0, matchUps }))
+            // Display errors gracefully
+            .catch(error => alert(error.message))
+        } else {
+            app.ui.displayError('Invalid inputs')
+        }
     })
 })
