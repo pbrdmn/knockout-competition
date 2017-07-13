@@ -17,6 +17,7 @@ class App {
             // Request the tournament details from the server
             this.http.post(0, '/tournament', { teamsPerMatch, numberOfTeams })
                 .then(tournament => {
+                    debugger
                     // Calculate number of matches to draw progress boxes
                     let remainingTeams = numberOfTeams
                     let totalMatches = 0

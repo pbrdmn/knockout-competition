@@ -80,7 +80,6 @@ class TournamentController {
   }
 
   findWinner({ tournamentId, teamScores, matchScore }) {
-    throw new Error("no winner")
     const tournament = this.tournamentManager.getTournament(tournamentId);
     return tournament.getWinner(teamScores, matchScore);
   }
