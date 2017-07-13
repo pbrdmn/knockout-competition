@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
         // decouple the networking from the business login
         http: new HTTP({
             // rateLimit: 5 // max requests per second
-            connectionsLimit: 4 // max simultaneous connections
+            connectionsLimit: 6 // max simultaneous connections
         }),
         // debug: true // Enable debug logging
     })

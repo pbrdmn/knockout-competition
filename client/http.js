@@ -20,7 +20,7 @@ class HTTP {
                 )
             } else if (this.connectionsLimit) {
                 this.connections = 0
-                setInterval(()=>{this.maintainConnectionsLimit()},10)
+                // setInterval(()=>{this.maintainConnectionsLimit()},10)
             }
         }
     }
@@ -43,9 +43,15 @@ class HTTP {
     send(p, request, params) {
         if (this.useQueue) {
             this.queue.push({ p, request, params })
-            this.queue = this.queue.sort((a,b) => a.p - b.p)
+            this.queue = this.queue.sort((a, b) => a.p - b.p)
+            this.maintainConnectionsLimit()
         } else
             request.send(params)
+    }
+    
+    connectionClosed() {
+        this.connections--
+        this.maintainConnectionsLimit()
     }
 
     // HTTP POST request
@@ -56,7 +62,7 @@ class HTTP {
             request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
 
             request.onload = () => {
-                this.connections--
+                this.connectionClosed()
                 if (request.status >= 200 && request.status < 400) {
                     resolve(JSON.parse(request.responseText))
                 } else {
@@ -68,7 +74,7 @@ class HTTP {
             }
 
             request.onerror = () => {
-                this.connections--
+                this.connectionClosed()
                 reject({ message:'Connection Error', error: true })
             }
 
@@ -83,7 +89,7 @@ class HTTP {
             request.open('GET', url + '?' + this.params(data), true)
 
             request.onload = () => {
-                this.connections--
+                this.connectionClosed()
                 if (request.status >= 200 && request.status < 400) {
                     resolve(JSON.parse(request.responseText))
                 } else {
@@ -92,7 +98,7 @@ class HTTP {
             }
 
             request.onerror = () => {
-                this.connections--
+                this.connectionClosed()
                 reject({ message:'Connection Error', error: true })
             }
 
