@@ -93,7 +93,7 @@ class HTTP {
                 if (request.status >= 200 && request.status < 400) {
                     resolve(JSON.parse(request.responseText))
                 } else {
-                    reject(JSON.parse(request.responseText))
+                    reject({ message:'Server Error', error: true })
                 }
             }
 

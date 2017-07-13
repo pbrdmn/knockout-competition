@@ -41,16 +41,16 @@ class App {
         if (this.debug) console.log(`Round ${(round + 1)}`)
 
         // Array of promises which resolve the winner of each match 
-        Promise.all(matchUps.map(matchUp =>
+        return Promise.all(matchUps.map(matchUp =>
             this.getMatch({ round, match: matchUp.match })
                 .then(matchScore =>
                     // Look up the each team by teamId for the match
                     Promise.all(matchUp.teamIds.map(teamId => this.getTeam({ match: matchUp.match, teamId })))
                         // When all teams for the match have been retrieved
-                        .then(teams => new Promise((resolve, reject) => {
+                        .then(teams => {
                             const teamScores = teams.map(team => team.score)
                             // Find the winning score
-                            this.getWinner({ teamScores, matchScore }).then(winningScore => {
+                            return this.getWinner({ teamScores, matchScore }).then(winningScore => {
                                 // The winner is the team with the matching score and lowest teamId
                                 const winner = teams
                                     .filter((team => team.score === winningScore))
@@ -64,21 +64,21 @@ class App {
                                 // Update UI and return winner
                                 if (this.debug) console.log(`${winner.name} defeated ${losers.map(team => team.name).join(", ")}`)
                                 this.ui.updateProgress()
-                                resolve(winner)
+                                return winner
                             })
-                        }))
+                        })
                 )
         ))
             // When all matches have been resolved
             .then(teams => {
                 if (teams.length == 1) {
                     // Display the winner
-                    this.ui.displayWinner(teams.shift().name)
+                    return this.ui.displayWinner(teams.shift().name)
                 } else {
                     // Setup next rount of matches
                     const matchUps = this.nextRoundMatchUps({ teams })
                     // Run the next round (recursion)
-                    this.runRound({ round: (round + 1), matchUps })
+                    return this.runRound({ round: (round + 1), matchUps })
                 }
             })
     }
@@ -108,6 +108,7 @@ class App {
             // Retrieve the match score from the server
             this.http.get(match, '/match', { tournamentId: this.tournamentId, round, match })
                 .then(response => resolve(response.score))
+                .catch(error => this.ui.displayError('Error retrieving Match'))
         })
     }
 
@@ -119,15 +120,14 @@ class App {
                 // Fetch the team from the server and cache before returning
                 this.http.get(match, '/team', { tournamentId: this.tournamentId, teamId })
                     .then(team => resolve(this.teams[teamId] = team))
+                    .catch(error => this.ui.displayError('Error retrieving Team'))
             }
         })
     }
 
     getWinner({ teamScores, matchScore }) {
-        return new Promise((resolve, reject) => {
-            // Retrieve the winning score for the match from the server
-            this.http.get(1, '/winner', { tournamentId: this.tournamentId, teamScores, matchScore })
-                .then(response => resolve(response.score))
-        })
+        // Retrieve the winning score for the match from the server
+        return this.http.get(1, '/winner', { tournamentId: this.tournamentId, teamScores, matchScore })
+            .then(response => response.score)
     }
 }

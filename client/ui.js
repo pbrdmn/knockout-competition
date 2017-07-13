@@ -29,6 +29,8 @@ class UI {
     }
 
     displayError(error) {
+        this.start.removeAttribute('disabled')
+        app.ui.start.innerText = "Start"
         this.error.innerHTML = error
     }
 
