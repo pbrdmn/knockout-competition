@@ -53,10 +53,7 @@ class App {
                             // Find the winning score
                             return this.getWinner({ teamScores, matchScore }).then(winningScore => {
                                 // The winner is the team with the matching score and lowest teamId
-                                const winner = teams
-                                    .filter((team => team.score === winningScore))
-                                    .sort((a, b) => a.teamId - b.teamId)
-                                    .shift()
+                                const winner = this.findWinner(teams, winningScore)
 
                                 // Remove losers from the local storage
                                 const losers = teams.filter((team => team.teamId !== winner.teamId))
@@ -130,5 +127,12 @@ class App {
         // Retrieve the winning score for the match from the server
         return this.http.get(1, '/winner', { tournamentId: this.tournamentId, teamScores, matchScore })
             .then(response => response.score)
+    }
+
+    findWinner(teams, winningScore) {
+        return teams
+            .filter((team => team.score === winningScore))
+            .sort((a, b) => a.teamId - b.teamId)
+            .shift()
     }
 }
