@@ -26,20 +26,30 @@
 }
 
 #progress {
-    text-align: center;
+    text-align: left;
     word-wrap: break-word;
+    background: grey;
+    position: absolute;
+    padding: 0 20%;
+    left: 0;
+    width: 100%;
+    box-sizing: border-box;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    opacity: .9;
+    pointer-events: none;
 }
 #progress span {
     display: inline-block;
-    border: 1px solid green;
-    width: 10px;
-    height: 10px;
-    background: transparent;
-    margin: 0 1px;
+    width: 64px;
+    height: 64px;
+    background: #a1a1a5;
+    margin: 12px;
     transition: .3s;
 }
 #progress span.completed {
-    background: green;
+    background: turquoise;
     transform: rotate(90deg);
 }
 
