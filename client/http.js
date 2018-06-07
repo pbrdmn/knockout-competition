@@ -1,6 +1,6 @@
 class HTTP {
     constructor(params) {
-        const defaults = { rateLimit: false, connectionsLimit: 5 }
+        const defaults = { rateLimit: false, connectionsLimit: 6 }
         const options = Object.assign({}, defaults, params)
 
         // API rateLimit in requests per second
