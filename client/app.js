@@ -75,7 +75,7 @@ class App {
                     // Display the winner
                     this.ui.displayWinner(teams.shift().name)
                 } else {
-                    // Setup next rount of matches
+                    // Setup next round of matches
                     const matchUps = this.nextRoundMatchUps({ teams })
                     // Run the next round (recursion)
                     this.runRound({ round: (round + 1), matchUps })
