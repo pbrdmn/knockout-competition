@@ -1,5 +1,5 @@
-const sydneySuburbs = require('./sydney_suburbs');
-const australianTeamNames = require('./australian_team_names');
+const sydneySuburbs = require("./sydney_suburbs");
+const australianTeamNames = require("./australian_team_names");
 
 class TeamNameGenerator {
   constructor(cityList, teamNameList) {

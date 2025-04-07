@@ -1,9 +1,9 @@
-const url = require('url');
-const http = require('http');
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const {TournamentError, TOURNAMENT_ERROR_TYPE} = require('./tournament');
+const url = require("url");
+const http = require("http");
+const express = require("express");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const { TournamentError, TOURNAMENT_ERROR_TYPE } = require("./tournament");
 
 class TournamentApp {
   constructor(staticPath, getDelay, tournamentController) {
@@ -17,17 +17,25 @@ class TournamentApp {
     const app = express();
 
     // Static files
-    app.get('/', (req, res) => res.sendFile(`${this.staticPath}/index.html`));
-    app.use('/client', express.static(`${this.staticPath}/client`));
+    app.get("/", (req, res) => res.sendFile(`${this.staticPath}/index.html`));
+    app.use("/client", express.static(`${this.staticPath}/client`));
 
     // Tournament endpoints
     app.use(cors());
-    app.use(bodyParser.urlencoded({extended: true}));
+    app.use(bodyParser.urlencoded({ extended: true }));
 
-    app.post('/tournament', (req, res) => this.serve(res, this.tournamentController.createTournament(req.body)));
-    app.get('/team', (req, res) => this.serve(res, this.tournamentController.findTeam(req.query)));
-    app.get('/match', (req, res) => this.serve(res, this.tournamentController.findMatch(req.query)));
-    app.get('/winner', (req, res) => this.serve(res, this.tournamentController.findWinner(req.query)));
+    app.post("/tournament", (req, res) =>
+      this.serve(res, this.tournamentController.createTournament(req.body))
+    );
+    app.get("/team", (req, res) =>
+      this.serve(res, this.tournamentController.findTeam(req.query))
+    );
+    app.get("/match", (req, res) =>
+      this.serve(res, this.tournamentController.findMatch(req.query))
+    );
+    app.get("/winner", (req, res) =>
+      this.serve(res, this.tournamentController.findWinner(req.query))
+    );
 
     // Error handling
     app.use((err, req, res, next) => {
@@ -39,7 +47,9 @@ class TournamentApp {
       next(err);
     });
 
-    this.server = app.listen(port, () => console.log(`server running on port ${port}`));
+    this.server = app.listen(port, () =>
+      console.log(`server running on port ${port}`)
+    );
   }
 
   close() {
@@ -51,7 +61,7 @@ class TournamentApp {
     setTimeout(() => res.send(data), this.getDelay());
   }
 
-  serveError(res, {status, data}) {
+  serveError(res, { status, data }) {
     res.status(status).send(data);
   }
 }
@@ -62,24 +72,24 @@ class TournamentController {
     this.getTournament = getTournament;
   }
 
-  createTournament({teamsPerMatch, numberOfTeams}) {
+  createTournament({ teamsPerMatch, numberOfTeams }) {
     const tournament = this.getTournament(teamsPerMatch, numberOfTeams);
     const tournamentId = this.tournamentManager.addTournament(tournament);
     const matchUps = tournament.getMatchUps();
-    return {tournamentId, matchUps};
+    return { tournamentId, matchUps };
   }
 
-  findTeam({tournamentId, teamId}) {
+  findTeam({ tournamentId, teamId }) {
     const tournament = this.tournamentManager.getTournament(tournamentId);
     return tournament.getTeam(teamId);
   }
 
-  findMatch({tournamentId, round, match}) {
+  findMatch({ tournamentId, round, match }) {
     const tournament = this.tournamentManager.getTournament(tournamentId);
     return tournament.getMatch(round, match);
   }
 
-  findWinner({tournamentId, teamScores, matchScore}) {
+  findWinner({ tournamentId, teamScores, matchScore }) {
     const tournament = this.tournamentManager.getTournament(tournamentId);
     return tournament.getWinner(teamScores, matchScore);
   }
@@ -99,10 +109,10 @@ class TournamentController {
       status,
       data: {
         message: err.message,
-        error: true
-      }
+        error: true,
+      },
     };
   }
 }
 
-module.exports = {TournamentApp, TournamentController};
+module.exports = { TournamentApp, TournamentController };
